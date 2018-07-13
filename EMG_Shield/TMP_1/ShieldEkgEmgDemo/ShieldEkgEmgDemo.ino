@@ -62,7 +62,7 @@ volatile unsigned char TXIndex;           //Next byte to write in the transmissi
 volatile unsigned char CurrentCh;         //Current channel being sampled.
 volatile unsigned char counter = 0;	  //Additional divider used to generate CAL_SIG
 volatile unsigned int ADC_Value = 0;	  //ADC current value
-volatile unsigned int CNTR_1 = 0;
+unsigned int CNTR_1 = 0;
 
 //~~~~~~~~~~
 // Functions
@@ -166,7 +166,7 @@ void Timer2_Overflow_ISR()
   
   // Increment the packet counter
   CNTR_1++;
-  if (CNTR_1 == 65536){
+  if (CNTR_1 == 65535){
     CNTR_1 = 0;
     }  		
   TXBuf[ 2 ] = ((unsigned char)((CNTR_1 & 0xFF00) >> 8));  // Write High Byte
