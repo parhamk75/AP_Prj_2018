@@ -17,7 +17,7 @@ Packet_ID_RE = re.compile('165,90,([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3}),([0-9]{
 #   the next byte! (It's so important to be asure of that because
 #   the next byte is '165' in normal state so it has a '1' at the beginning!)
 
-tmp_cnst_1 = 1000
+tmp_cnst_1 = 200
 
 class sril_thrd(Thread):
     def __init__( self, Serial_Port, Baud_Rate ):
@@ -30,6 +30,7 @@ class sril_thrd(Thread):
         print("Serial Port is: {}".format(self.Serial_Port_))
         print("Serial Port is: {}".format(self.Baud_Rate_))
         SER = serial.Serial( self.Serial_Port_, self.Baud_Rate_)
+        SER.flushInput()
         i = 0
         while i<tmp_cnst_1:            
             Input_Buf.put( SER.read() )
@@ -44,17 +45,28 @@ class pckt_xtrctr_thrd(Thread):
         tmp_1 = ''
         i = 0
         while i<tmp_cnst_1:
-            tmp_1 += '{},'.format( ord(Input_Buf.get()) )
+            tmp_1 += '{},'.format( ord(Input_Buf.get(block=True)) )
+            
+            tmp_2 = Packet_ID_RE.findall(tmp_1)
+            
+#            tmp_1 = Packet_ID_RE.sub('', tmp_1)
+            if len(tmp_2) > 0:
+                Data_Buf.put(tmp_2[0])
+                print(tmp_2)
+                tmp_1 = ''
+            
+                
+
 #            print(tmp_1)
 #            a = tmp_1.split(',')
 #            print(a)
             
             i += 1
             
-        print(Packet_ID_RE.findall(tmp_1))
-        Extrctd_Data = 0
-        Data_Buf.put(Extrctd_Data)
-
+        print(tmp_1)
+#        tmp_2 = Packet_ID_RE.findall(tmp_1)
+#        Data_Buf.put(tmp_2)
+        
 
 
 EMG_Shield_Serial_Reader = sril_thrd("COM7", 57600)
