@@ -31,11 +31,14 @@ class sril_thrd(Thread):
         print("Serial Port is: {}".format(self.Baud_Rate_))
         SER = serial.Serial( self.Serial_Port_, self.Baud_Rate_)
         SER.flushInput()
+        
         i = 0
         while i<tmp_cnst_1:            
             Input_Buf.put( SER.read() )
             i += 1
-#            EMG_SER.close()
+            
+        SER.close()
+
 
 class pckt_xtrctr_thrd(Thread):
     def __init__( self ):
@@ -43,29 +46,19 @@ class pckt_xtrctr_thrd(Thread):
         
     def run( self ):
         tmp_1 = ''
+        
         i = 0
         while i<tmp_cnst_1:
-            tmp_1 += '{},'.format( ord(Input_Buf.get(block=True)) )
+            tmp_1 += '{},'.format( ord(Input_Buf.get(block=True)) )           
+            tmp_2 = Packet_ID_RE.findall(tmp_1)            
             
-            tmp_2 = Packet_ID_RE.findall(tmp_1)
-            
-#            tmp_1 = Packet_ID_RE.sub('', tmp_1)
             if len(tmp_2) > 0:
                 Data_Buf.put(tmp_2[0])
-                print(tmp_2)
-                tmp_1 = ''
-            
-                
-
-#            print(tmp_1)
-#            a = tmp_1.split(',')
-#            print(a)
-            
+#                print(tmp_2)
+                tmp_1 = ''        
             i += 1
             
         print(tmp_1)
-#        tmp_2 = Packet_ID_RE.findall(tmp_1)
-#        Data_Buf.put(tmp_2)
         
 
 
@@ -80,7 +73,8 @@ EMG_Shield_Serial_Reader.join()
 EMG_Data_Packet_Extractor.join()
 
 
-
+for i in range(Data_Buf.qsize()):
+    print(Data_Buf.get())
             
         
     
