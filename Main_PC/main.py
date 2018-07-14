@@ -17,7 +17,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout
 
 ################## Serial ####################
 
-Serial_Port = "COM2"
+Serial_Port = "COM1"
 Baud_Rate = 57600
 
 Input_Buf = Queue()
@@ -109,7 +109,17 @@ class Ploter( Forms[0], QMainWindow):
 ###########################################
 
 
+############ Data Processing ##############
+        
+class dt_prcss(Thread):
+    def __init__( self, Serial_Port, Baud_Rate ):
+        pass
+    
+    def run( self ):
+        pass
 
+###########################################    
+        
 ############## Main Thread ################
 
 EMG_Shield_Serial_Reader = sril_thrd( Serial_Port, Baud_Rate)
