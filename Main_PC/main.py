@@ -17,7 +17,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout
 
 ################## Serial ####################
 
-Serial_Port = "COM1"
+Serial_Port = "COM2"
 Baud_Rate = 57600
 
 Input_Buf = Queue()
@@ -75,6 +75,7 @@ class pckt_xtrctr_thrd(Thread):
                 num = int( (tmp_2[0])[0] )*256 + int( (tmp_2[0])[1] )
                 amp = int( (tmp_2[0])[2] )*256 + int( (tmp_2[0])[3] )
                 Data_Buf_Processed.put( ( num, amp) )
+#                print(Data_Buf_Processed.get())
             i += 1
             
         print(tmp_1)
