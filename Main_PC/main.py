@@ -4,12 +4,17 @@ from threading import Thread
 import re
 
 
+
+
+
 Serial_Port = "COM7"
 Baud_Rate = 57600
 
 Input_Buf = Queue()
 
-Data_Buf = Queue()
+Data_Buf_Raw = Queue()
+
+Data_Buf_Processed = Queue()
 
 Packet_ID_RE = re.compile('165,90,([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3}),1,')
 #       Please Don't omit the last comma (',') in the RE above because it
@@ -53,14 +58,17 @@ class pckt_xtrctr_thrd(Thread):
             tmp_2 = Packet_ID_RE.findall(tmp_1)            
             
             if len(tmp_2) > 0:
-                Data_Buf.put(tmp_2[0])
-#                print(tmp_2)
+                Data_Buf_Raw.put(tmp_2[0])                
                 tmp_1 = ''        
+#                Unpacking the raw data to the processed data queue
+                num = int( (tmp_2[0])[0] )*256 + int( (tmp_2[0])[1] )
+                amp = int( (tmp_2[0])[2] )*256 + int( (tmp_2[0])[3] )
+                Data_Buf_Processed.put( ( num, amp) )
             i += 1
             
         print(tmp_1)
-        
-
+ 
+    
 
 EMG_Shield_Serial_Reader = sril_thrd("COM7", 57600)
 EMG_Shield_Serial_Reader.start()
@@ -73,9 +81,9 @@ EMG_Shield_Serial_Reader.join()
 EMG_Data_Packet_Extractor.join()
 
 
-for i in range(Data_Buf.qsize()):
-    print(Data_Buf.get())
-            
+for i in range(Data_Buf_Raw.qsize()):
+    print(Data_Buf_Processed.get())
+        
         
     
     
