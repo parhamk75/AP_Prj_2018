@@ -11,7 +11,11 @@ from time import sleep
 import os
 import sys
 
-sys.path.append(os.path.join(getcwd(),"../"))
+sys.path.append(os.path.join(os.getcwd(),".\\Chrome-T-Rex-Rush-master\\"))
+sys.path.append(os.path.join(os.getcwd(),".\\Chrome-T-Rex-Rush-master\\sprite"))
+
+import pyGame
+
 
 
 from PyQt5 import uic
@@ -25,14 +29,15 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout
 
 ################## Serial ####################
 
-Serial_Port = "COM11"
+Serial_Port = "COM1"
 Baud_Rate = 57600
 
 Input_Buf = Queue()
 
 #Data_Buf_Raw = Queue()
 
-Data_Buf_Processed = Queue()
+Extracted_Data_Buf_2_Show = Queue()
+Extracted_Data_Buf = Queue()
 
 
 Packet_ID_RE = re.compile('165,90,([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3}),1,')
@@ -41,9 +46,9 @@ Packet_ID_RE = re.compile('165,90,([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3}),([0-9]{
 #   the next byte! (It's so important to be asure of that because
 #   the next byte is '165' in normal state so it has a '1' at the beginning!)
 
-temp_packet_number = 200
+temp_packet_number = 2000
 tmp_cnst_1 = 40 + 7 * temp_packet_number
-print("getting {} packets".format(temp_packet_number))
+print("getting {} packets".format( int(temp_packet_number/7)) )
 
 class sril_thrd(Thread):
     def __init__( self, Serial_Port, Baud_Rate ):
@@ -73,7 +78,7 @@ class pckt_xtrctr_thrd(Thread):
         
     def run( self ):
         tmp_1 = ''
-        
+        cntr_2 = 0
         i = 0
         #while i<tmp_cnst_1:
         while True:
@@ -86,8 +91,15 @@ class pckt_xtrctr_thrd(Thread):
 #                Unpacking the raw data to the processed data queue
                 num = int( (tmp_2[0])[0] )*256 + int( (tmp_2[0])[1] )
                 amp = int( (tmp_2[0])[2] )*256 + int( (tmp_2[0])[3] )
-                Data_Buf_Processed.put( ( num, amp) )
-#                print(Data_Buf_Processed.get())
+                
+                if cntr_2 > 10:
+                    Extracted_Data_Buf_2_Show.put( amp )
+                    cntr_2 = 0
+                
+                
+                Extracted_Data_Buf.put( ( num, amp) )
+                cntr_2 += 1
+#                print(Extracted_Data_Buf_2_Show.get())
             i += 1
             
         print(tmp_1)
@@ -108,21 +120,48 @@ class Ploter( Forms[0], QMainWindow):
         
         self.fig = Figure()
         self.ax = self.fig.add_axes([ 0.1, 0.1, 0.8, 0.8])
+       
+        self.ax.set_ylim([-100,1500])
         self.canvas = FigureCanvas(self.fig)
         self.navi = NavigationToolbar( self.canvas, self)
+        
+        self.points_x = []
+        self.points_y = []
+        self.line, = self.ax.plot(  self.points_x, self.points_y)
         
         l = QVBoxLayout(self.Plt_Wdgt)
         l.addWidget(self.canvas)
         l.addWidget(self.navi)
         
     def Tmp_Run_Bttn_Func(self):
+        
+        
         print("Ich liebe sie!")
+
+    
+        EMG_Shield_Serial_Reader.start()
+        EMG_Data_Packet_Extractor.start()
+        EMG_Process_Act.start()
+
+        print("PyGame passed!!!")
+        
+        time_x = 0
+        while True :
+            tmp_amp = Extracted_Data_Buf_2_Show.get(block=True)
+            self.points_x.append(time_x)
+            self.points_y.append(tmp_amp)
+            self.line.set_data(self.points_x, self.points_y)
+            self.ax.set_xlim([time_x-300,time_x+300])
+            self.fig.canvas.draw()
+            pltr_app.processEvents()
+            time_x += 1
         
 ###########################################
 
 
 ############ Data Processing ##############
-threshould = 500
+threshould = 480
+packet_number = 2
 
 class dt_prcss(Thread):
     __strength__ = 0
@@ -132,26 +171,28 @@ class dt_prcss(Thread):
         Thread.__init__(self, name = "hystersis for values Thread")
     
     def run( self ):
+        print("Data Process Started!")
         while True:
-            if Data_Buf_Processed.qsize() > 100:
-                #print("processing one group")
+            if Extracted_Data_Buf.qsize() > (packet_number):
+#                print("processing one group")
                 amps = []
-                for i in range(100):
-                    a,b = Data_Buf_Processed.get()
+                for i in range(packet_number):
+                    a,b = Extracted_Data_Buf.get()
                     amps.append(b)
-                self.__strength__ = sum(amps) / 100
+                self.__strength__ = sum(amps) / packet_number
                 #print("summation = {}".format(self.__strength__))
                 if self.__current_state__ == False:
                     if self.__strength__ > threshould:
                         self.__current_state__ = True
                         print("got HIGH")
                         # here should emit
-                        
+                        pyGame.set_high()
                 else:
                     if self.__strength__ < threshould:
                         self.__current_state__ = False
                         print("got LOW")
                         #here should emit
+                        pyGame.set_low()
             else:
                 sleep(0.1)
 
@@ -161,15 +202,14 @@ class dt_prcss(Thread):
 
 EMG_Shield_Serial_Reader = sril_thrd( Serial_Port, Baud_Rate)
 EMG_Shield_Serial_Reader.setDaemon(True)
-EMG_Shield_Serial_Reader.start()
+
 
 EMG_Data_Packet_Extractor = pckt_xtrctr_thrd()
 EMG_Data_Packet_Extractor.setDaemon(True)
-EMG_Data_Packet_Extractor.start()
+
 
 EMG_Process_Act = dt_prcss()
 EMG_Process_Act.setDaemon(True)
-EMG_Process_Act.start()
 
 
 
@@ -179,13 +219,21 @@ EMG_Process_Act.start()
 #EMG_Data_Packet_Extractor.join()
 
 
-#for i in range(Data_Buf_Processed.qsize()):
-#    print(Data_Buf_Processed.get())
+#for i in range(Extracted_Data_Buf_2_Show.qsize()):
+#    print(Extracted_Data_Buf_2_Show.get())
         
 
 pltr_app = QApplication(sys.argv)
 pltr_w = Ploter()
 pltr_w.show()
+
+def Game_Opener():
+    pyGame.main()
+    
+t = Thread(target = Game_Opener)
+t.setDaemon(True)
+t.start()
+
 
 sys.exit( pltr_app.exec_() )
         
