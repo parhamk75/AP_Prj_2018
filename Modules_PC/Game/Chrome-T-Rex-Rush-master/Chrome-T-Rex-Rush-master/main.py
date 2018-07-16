@@ -386,26 +386,22 @@ def gameplay():
                 gameOver = True
             else:
 ##################### Event Process #####################
-                if Event_Queue.:
-                    if event.type == pygame.QUIT:
-                        gameQuit = True
-                        gameOver = True
+                if Event_Queue.qsize() > 0 :
+                    evnt = Event_Queue.get()
+#                    if event.type == pygame.QUIT:
+#                        gameQuit = True
+#                        gameOver = True
 
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_a:
-                            if playerDino.rect.bottom == int(0.98*height):
-                                playerDino.isJumping = True
-                                if pygame.mixer.get_init() != None:
-                                    jump_sound.play()
-                                playerDino.movement[1] = -1*playerDino.jumpSpeed
+                    if evnt == 1:                        
+                        if playerDino.rect.bottom == int(0.98*height):
+                            playerDino.isJumping = True
+                            if pygame.mixer.get_init() != None:
+                                jump_sound.play()
+                            playerDino.movement[1] = -1*playerDino.jumpSpeed
 
-                        if event.key == pygame.K_DOWN:
-                            if not (playerDino.isJumping and playerDino.isDead):
-                                playerDino.isDucking = True
 
-                    if event.type == pygame.KEYUP:
-                        if event.key == pygame.K_DOWN:
-                            playerDino.isDucking = False
+                    if evnt == 0:                       
+                        playerDino.isDucking = False
             for c in cacti:
                 c.movement[0] = -1*gamespeed
                 if pygame.sprite.collide_mask(playerDino,c):
