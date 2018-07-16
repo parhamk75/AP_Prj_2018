@@ -17,7 +17,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout
 
 ################## Serial ####################
 
-Serial_Port = "COM5"
+Serial_Port = "COM11"
 Baud_Rate = 57600
 
 Input_Buf = Queue()
