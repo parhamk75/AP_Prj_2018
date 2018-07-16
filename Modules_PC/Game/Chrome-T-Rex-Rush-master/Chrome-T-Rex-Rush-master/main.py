@@ -1,5 +1,9 @@
 __author__ = "Shivam Shekhar"
 
+from queue import Queue
+
+Event_Queue = Queue()
+
 import os
 import sys
 import pygame
@@ -8,7 +12,7 @@ from pygame import *
 
 pygame.init()
 
-scr_size = (width,height) = (1000,150)
+scr_size = (width,height) = (1000,260)
 FPS = 60
 gravity = 0.6
 
@@ -188,7 +192,7 @@ class Cactus(pygame.sprite.Sprite):
         self.images,self.rect = load_sprite_sheet('cacti-small.png',3,1,sizex,sizey,-1)
         self.rect.bottom = int(0.98*height)
         self.rect.left = width + self.rect.width
-        self.image = self.images[random.randrange(0,3)]
+        self.image = self.images[2]
         self.movement = [-1*speed,0]
 
     def draw(self):
@@ -204,7 +208,7 @@ class Ptera(pygame.sprite.Sprite):
     def __init__(self,speed=5,sizex=-1,sizey=-1):
         pygame.sprite.Sprite.__init__(self,self.containers)
         self.images,self.rect = load_sprite_sheet('ptera.png',2,1,sizex,sizey,-1)
-        self.ptera_height = [height*0.82,height*0.75,height*0.60]
+        self.ptera_height = [height*0.25,height*0.19,height*0.1]
         self.rect.centery = self.ptera_height[random.randrange(0,3)]
         self.rect.left = width + self.rect.width
         self.image = self.images[0]
@@ -340,7 +344,7 @@ def introscreen():
 
 def gameplay():
     global high_score
-    gamespeed = 4
+    gamespeed = 5
     startMenu = False
     gameOver = False
     gameQuit = False
@@ -381,7 +385,8 @@ def gameplay():
                 gameQuit = True
                 gameOver = True
             else:
-                for event in pygame.event.get():
+##################### Event Process #####################
+                if Event_Queue.:
                     if event.type == pygame.QUIT:
                         gameQuit = True
                         gameOver = True
@@ -506,6 +511,6 @@ def main():
     if not isGameQuit:
         gameplay()
 
-#main()
+main()
         
 gameplay()        
