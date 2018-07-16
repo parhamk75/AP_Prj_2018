@@ -17,14 +17,14 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout
 
 ################## Serial ####################
 
-Serial_Port = "COM2"
+Serial_Port = "COM5"
 Baud_Rate = 57600
 
 Input_Buf = Queue()
 
 #Data_Buf_Raw = Queue()
 
-Data_Buf_Processed = Queue()
+Extracted_Data_Buf_2_Show = Queue()
 
 
 Packet_ID_RE = re.compile('165,90,([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3}),1,')
@@ -33,7 +33,7 @@ Packet_ID_RE = re.compile('165,90,([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3}),([0-9]{
 #   the next byte! (It's so important to be asure of that because
 #   the next byte is '165' in normal state so it has a '1' at the beginning!)
 
-tmp_cnst_1 = 200
+tmp_cnst_1 = 200000
 
 class sril_thrd(Thread):
     def __init__( self, Serial_Port, Baud_Rate ):
@@ -74,7 +74,7 @@ class pckt_xtrctr_thrd(Thread):
 #                Unpacking the raw data to the processed data queue
                 num = int( (tmp_2[0])[0] )*256 + int( (tmp_2[0])[1] )
                 amp = int( (tmp_2[0])[2] )*256 + int( (tmp_2[0])[3] )
-                Data_Buf_Processed.put( ( num, amp) )
+                Extracted_Data_Buf_2_Show.put( ( num, amp) )
 #                print(Data_Buf_Processed.get())
             i += 1
             
@@ -91,20 +91,44 @@ class Ploter( Forms[0], QMainWindow):
         QMainWindow.__init__(self)
         self.setupUi(self)
         
-        
         self.Tmp_Run_Bttn.clicked.connect(self.Tmp_Run_Bttn_Func)
         
         self.fig = Figure()
         self.ax = self.fig.add_axes([ 0.1, 0.1, 0.8, 0.8])
+#        self.ax.set_autoscalex_on(True)
+        self.ax.set_xlim([0,600])
+        self.ax.set_ylim([-100,1500])
         self.canvas = FigureCanvas(self.fig)
         self.navi = NavigationToolbar( self.canvas, self)
+        
+        self.points_x = [ 0, 1, 2, 3, 4]
+        self.points_y = [ 0, 0, 0, 0, 0]
+        self.line, = self.ax.plot(  self.points_x, self.points_y)
         
         l = QVBoxLayout(self.Plt_Wdgt)
         l.addWidget(self.canvas)
         l.addWidget(self.navi)
         
     def Tmp_Run_Bttn_Func(self):
+        
         print("Ich liebe sie!")
+
+    
+        EMG_Shield_Serial_Reader.start()
+        EMG_Data_Packet_Extractor.start()
+
+        
+        tmp_1 = 0
+        
+        while True :
+            tmp_1 = Extracted_Data_Buf_2_Show.get(block=True)
+            self.points_x.append(tmp_1[0])
+            self.points_y.append(tmp_1[1])
+            self.line.set_data(self.points_x, self.points_y)
+            self.fig.canvas.draw()
+            pltr_app.processEvents()
+            
+        
         
 ###########################################
 
@@ -113,18 +137,17 @@ class Ploter( Forms[0], QMainWindow):
 ############## Main Thread ################
 
 EMG_Shield_Serial_Reader = sril_thrd( Serial_Port, Baud_Rate)
-EMG_Shield_Serial_Reader.start()
+EMG_Shield_Serial_Reader.setDaemon(True)
 
 EMG_Data_Packet_Extractor = pckt_xtrctr_thrd()
-EMG_Data_Packet_Extractor.start()
+EMG_Data_Packet_Extractor.setDaemon(True)
 
+#EMG_Shield_Serial_Reader.join()
+#EMG_Data_Packet_Extractor.join()
 
-EMG_Shield_Serial_Reader.join()
-EMG_Data_Packet_Extractor.join()
-
-
-for i in range(Data_Buf_Processed.qsize()):
-    print(Data_Buf_Processed.get())
+#
+#for i in range(Extracted_Data_Buf_2_Show.qsize()):
+#    print(Extracted_Data_Buf_2_Show.get())
         
 
 pltr_app = QApplication(sys.argv)
