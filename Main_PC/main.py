@@ -1,10 +1,18 @@
+# new data processing -> new thread for hystersys
 import serial
 from queue import Queue
 from threading import Thread
 import re
 
+# for sleep
+from time import sleep
+
+#to run the game:
 import os
 import sys
+
+sys.path.append(os.path.join(getcwd(),"../"))
+
 
 from PyQt5 import uic
 
@@ -17,7 +25,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout
 
 ################## Serial ####################
 
-Serial_Port = "COM1"
+Serial_Port = "COM11"
 Baud_Rate = 57600
 
 Input_Buf = Queue()
@@ -33,7 +41,9 @@ Packet_ID_RE = re.compile('165,90,([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3}),([0-9]{
 #   the next byte! (It's so important to be asure of that because
 #   the next byte is '165' in normal state so it has a '1' at the beginning!)
 
-tmp_cnst_1 = 200
+temp_packet_number = 200
+tmp_cnst_1 = 40 + 7 * temp_packet_number
+print("getting {} packets".format(temp_packet_number))
 
 class sril_thrd(Thread):
     def __init__( self, Serial_Port, Baud_Rate ):
@@ -49,7 +59,8 @@ class sril_thrd(Thread):
         SER.flushInput()
         
         i = 0
-        while i<tmp_cnst_1:            
+        #while i<tmp_cnst_1:            
+        while True:
             Input_Buf.put( SER.read() )
             i += 1
             
@@ -64,7 +75,8 @@ class pckt_xtrctr_thrd(Thread):
         tmp_1 = ''
         
         i = 0
-        while i<tmp_cnst_1:
+        #while i<tmp_cnst_1:
+        while True:
             tmp_1 += '{},'.format( ord(Input_Buf.get(block=True)) )           
             tmp_2 = Packet_ID_RE.findall(tmp_1)            
             
@@ -110,31 +122,65 @@ class Ploter( Forms[0], QMainWindow):
 
 
 ############ Data Processing ##############
-        
+threshould = 500
+
 class dt_prcss(Thread):
-    def __init__( self, Serial_Port, Baud_Rate ):
-        pass
+    __strength__ = 0
+    __current_state__ = False
+    
+    def __init__( self):
+        Thread.__init__(self, name = "hystersis for values Thread")
     
     def run( self ):
-        pass
+        while True:
+            if Data_Buf_Processed.qsize() > 100:
+                #print("processing one group")
+                amps = []
+                for i in range(100):
+                    a,b = Data_Buf_Processed.get()
+                    amps.append(b)
+                self.__strength__ = sum(amps) / 100
+                #print("summation = {}".format(self.__strength__))
+                if self.__current_state__ == False:
+                    if self.__strength__ > threshould:
+                        self.__current_state__ = True
+                        print("got HIGH")
+                        # here should emit
+                        
+                else:
+                    if self.__strength__ < threshould:
+                        self.__current_state__ = False
+                        print("got LOW")
+                        #here should emit
+            else:
+                sleep(0.1)
 
 ###########################################    
         
 ############## Main Thread ################
 
 EMG_Shield_Serial_Reader = sril_thrd( Serial_Port, Baud_Rate)
+EMG_Shield_Serial_Reader.setDaemon(True)
 EMG_Shield_Serial_Reader.start()
 
 EMG_Data_Packet_Extractor = pckt_xtrctr_thrd()
+EMG_Data_Packet_Extractor.setDaemon(True)
 EMG_Data_Packet_Extractor.start()
 
+EMG_Process_Act = dt_prcss()
+EMG_Process_Act.setDaemon(True)
+EMG_Process_Act.start()
 
-EMG_Shield_Serial_Reader.join()
-EMG_Data_Packet_Extractor.join()
 
 
-for i in range(Data_Buf_Processed.qsize()):
-    print(Data_Buf_Processed.get())
+
+
+#EMG_Shield_Serial_Reader.join()
+#EMG_Data_Packet_Extractor.join()
+
+
+#for i in range(Data_Buf_Processed.qsize()):
+#    print(Data_Buf_Processed.get())
         
 
 pltr_app = QApplication(sys.argv)
