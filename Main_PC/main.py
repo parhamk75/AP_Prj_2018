@@ -17,7 +17,11 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout
 
 ################## Serial ####################
 
+<<<<<<< HEAD
 Serial_Port = "COM1"
+=======
+Serial_Port = "COM11"
+>>>>>>> 184ba5c78ab7408acaabee5d2b6087ac7820f928
 Baud_Rate = 57600
 
 Input_Buf = Queue()
@@ -33,7 +37,7 @@ Packet_ID_RE = re.compile('165,90,([0-9]{1,3}),([0-9]{1,3}),([0-9]{1,3}),([0-9]{
 #   the next byte! (It's so important to be asure of that because
 #   the next byte is '165' in normal state so it has a '1' at the beginning!)
 
-tmp_cnst_1 = 200
+tmp_cnst_1 = 20000
 
 class sril_thrd(Thread):
     def __init__( self, Serial_Port, Baud_Rate ):
