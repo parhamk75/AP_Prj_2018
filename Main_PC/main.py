@@ -11,7 +11,11 @@ from time import sleep
 import os
 import sys
 
-sys.path.append(os.path.join(getcwd(),"../"))
+sys.path.append(os.path.join(os.getcwd(),".\\Chrome-T-Rex-Rush-master\\"))
+sys.path.append(os.path.join(os.getcwd(),".\\Chrome-T-Rex-Rush-master\\sprite"))
+
+import pyGame
+
 
 
 from PyQt5 import uic
@@ -116,6 +120,7 @@ class Ploter( Forms[0], QMainWindow):
         l.addWidget(self.navi)
         
     def Tmp_Run_Bttn_Func(self):
+        pyGame.main()
         print("Ich liebe sie!")
         
 ###########################################
@@ -186,6 +191,8 @@ EMG_Process_Act.start()
 pltr_app = QApplication(sys.argv)
 pltr_w = Ploter()
 pltr_w.show()
+
+
 
 sys.exit( pltr_app.exec_() )
         
