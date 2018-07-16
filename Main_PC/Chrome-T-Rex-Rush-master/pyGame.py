@@ -8,6 +8,7 @@ import pygame
 import random
 from pygame import *
 
+<<<<<<< HEAD
 from queue import Queue
 
 Event_Q = Queue()
@@ -21,11 +22,17 @@ def set_low():
     print("parham is geniuss")
     Event_Q.put(0)
 
+=======
+>>>>>>> 8d947eb032b476e2a3b657b264d4aa2ae767d8de
 sys.path.append(os.getcwd())
 
 pygame.init()
 
+<<<<<<< HEAD
 scr_size = (width,height) = (1000,250)
+=======
+scr_size = (width,height) = (1000,150)
+>>>>>>> 8d947eb032b476e2a3b657b264d4aa2ae767d8de
 FPS = 60
 gravity = 0.6
 
@@ -227,7 +234,11 @@ class Ptera(pygame.sprite.Sprite):
     def __init__(self,speed=5,sizex=-1,sizey=-1):
         pygame.sprite.Sprite.__init__(self,self.containers)
         self.images,self.rect = load_sprite_sheet('ptera.png',2,1,sizex,sizey,-1)
+<<<<<<< HEAD
         self.ptera_height = [height*0.2,height*0.25,height*0.3]
+=======
+        self.ptera_height = [height*0.82,height*0.75,height*0.60]
+>>>>>>> 8d947eb032b476e2a3b657b264d4aa2ae767d8de
         self.rect.centery = self.ptera_height[random.randrange(0,3)]
         self.rect.left = width + self.rect.width
         self.image = self.images[0]
@@ -404,6 +415,7 @@ def gameplay():
                 gameQuit = True
                 gameOver = True
             else:
+<<<<<<< HEAD
 #                for event in pygame.event.get():
                 if Event_Q.qsize() > 0 :
                     Evnt = Event_Q.get()
@@ -426,6 +438,28 @@ def gameplay():
                 if Evnt == 0 :
 #                if event.key == pygame.K_DOWN:
                     playerDino.isDucking = False
+=======
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        gameQuit = True
+                        gameOver = True
+
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_a:
+                            if playerDino.rect.bottom == int(0.98*height):
+                                playerDino.isJumping = True
+                                if pygame.mixer.get_init() != None:
+                                    jump_sound.play()
+                                playerDino.movement[1] = -1*playerDino.jumpSpeed
+
+                        if event.key == pygame.K_DOWN:
+                            if not (playerDino.isJumping and playerDino.isDead):
+                                playerDino.isDucking = True
+
+                    if event.type == pygame.KEYUP:
+                        if event.key == pygame.K_DOWN:
+                            playerDino.isDucking = False
+>>>>>>> 8d947eb032b476e2a3b657b264d4aa2ae767d8de
             for c in cacti:
                 c.movement[0] = -1*gamespeed
                 if pygame.sprite.collide_mask(playerDino,c):
@@ -527,8 +561,19 @@ def gameplay():
     quit()
 
 def main():
+<<<<<<< HEAD
+=======
+    
+    
+>>>>>>> 8d947eb032b476e2a3b657b264d4aa2ae767d8de
     isGameQuit = introscreen()
     if not isGameQuit:
         gameplay()
 
+<<<<<<< HEAD
 #main()
+=======
+#main()
+        
+#gameplay()        
+>>>>>>> 8d947eb032b476e2a3b657b264d4aa2ae767d8de

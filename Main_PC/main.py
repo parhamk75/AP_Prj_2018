@@ -134,8 +134,12 @@ class Ploter( Forms[0], QMainWindow):
         l.addWidget(self.navi)
         
     def Tmp_Run_Bttn_Func(self):
+<<<<<<< HEAD
         
         
+=======
+        pyGame.main()
+>>>>>>> 8d947eb032b476e2a3b657b264d4aa2ae767d8de
         print("Ich liebe sie!")
 
     
@@ -227,12 +231,15 @@ pltr_app = QApplication(sys.argv)
 pltr_w = Ploter()
 pltr_w.show()
 
+<<<<<<< HEAD
 def Game_Opener():
     pyGame.main()
     
 t = Thread(target = Game_Opener)
 t.setDaemon(True)
 t.start()
+=======
+>>>>>>> 8d947eb032b476e2a3b657b264d4aa2ae767d8de
 
 
 sys.exit( pltr_app.exec_() )
