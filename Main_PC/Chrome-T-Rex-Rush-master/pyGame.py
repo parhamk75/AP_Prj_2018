@@ -27,7 +27,7 @@ pygame.init()
 
 scr_size = (width,height) = (1000,250)
 FPS = 60
-gravity = 0.6
+gravity = 0.53
 
 black = (0,0,0)
 white = (255,255,255)
@@ -513,6 +513,7 @@ def gameplay():
 
                         if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
                             gameOver = False
+                            Event_Q.put(1)
                             gameplay()
             highsc.update(high_score)
             if pygame.display.get_surface() != None:
