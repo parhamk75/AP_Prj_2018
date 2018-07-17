@@ -29,7 +29,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout
 
 ################## Serial ####################
 
-Serial_Port = "COM1"
+Serial_Port = "COM6"
 Baud_Rate = 57600
 
 Input_Buf = Queue()
@@ -59,7 +59,7 @@ class sril_thrd(Thread):
     
     def run( self ):
         print("Serial Port is: {}".format(self.Serial_Port_))
-        print("Serial Port is: {}".format(self.Baud_Rate_))
+        print("Serial Baud Rate is: {}".format(self.Baud_Rate_))
         SER = serial.Serial( self.Serial_Port_, self.Baud_Rate_)
         SER.flushInput()
         

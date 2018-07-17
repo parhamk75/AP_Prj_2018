@@ -45,6 +45,10 @@ struct Olimexino328_packet
 /**********************************************************/
 #include <compat/deprecated.h>
 #include <FlexiTimer2.h>
+#include <SoftwareSerial.h>
+
+SoftwareSerial MyBuffer ( 7, 8);
+
 //http://www.arduino.cc/playground/Main/FlexiTimer2
 
 // All definitions
@@ -131,7 +135,14 @@ void setup() {
  FlexiTimer2::start();
  
  // Serial Port
- Serial.begin(57600);
+ //Serial.begin(57600);
+ 
+pinMode(7, INPUT);
+pinMode(8, OUTPUT);
+digitalWrite(8,HIGH);
+
+MyBuffer.begin(57600);
+
  //Set speed to 57600 bps
  
  // MCU sleep mode = idle.
@@ -161,7 +172,7 @@ void Timer2_Overflow_ISR()
 	 
   // Send Packet
   for(TXIndex=0;TXIndex<PACKETLEN;TXIndex++){
-    Serial.write(TXBuf[TXIndex]);
+    MyBuffer.write(TXBuf[TXIndex]);
   }
   
   // Increment the packet counter
